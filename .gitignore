@@ -1,0 +1,9 @@
+# Java class files
+*.class
+
+# Ant build artifacts
+build/
+dist/
+
+# IDE metadata
+nbproject/
