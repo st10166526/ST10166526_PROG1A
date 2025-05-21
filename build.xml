@@ -26,13 +26,18 @@
 
   <target name="test" depends="compile">
     <mkdir dir="${build.dir}/test-reports"/>
-    <junit printsummary="yes" haltonfailure="yes">
+    <junit printsummary="yes"
+           haltonfailure="yes"
+           fork="true">
       <classpath>
         <pathelement path="${build.dir}/classes"/>
         <fileset dir="${lib.dir}">
           <include name="**/*.jar"/>
         </fileset>
       </classpath>
+      <!-- Send failure details to the Actions log -->
+      <formatter type="plain" usefile="false"/>
+
       <batchtest todir="${build.dir}/test-reports">
         <fileset dir="${test.dir}">
           <include name="**/*Test.java"/>
@@ -40,6 +45,7 @@
       </batchtest>
     </junit>
   </target>
+
 
   <target name="jar" depends="test">
     <mkdir dir="${dist.dir}"/>
