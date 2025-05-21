@@ -12,39 +12,46 @@
   </target>
 
   <target name="compile" depends="clean">
-    <mkdir dir="${build.dir}/classes"/>
-    <javac srcdir="${src.dir}"
-           destdir="${build.dir}/classes"
-           includeantruntime="false">
-      <classpath>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar"/>
-        </fileset>
-      </classpath>
-    </javac>
-  </target>
+  <mkdir dir="${build.dir}/classes"/>
+
+  <!-- compile both main AND test sources into the same classes dir -->
+  <javac destdir="${build.dir}/classes"
+         includeantruntime="false">
+    <!-- production code -->
+    <src path="${src.dir}"/>
+    <!-- test code -->
+    <src path="${test.dir}"/>
+    <classpath>
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </classpath>
+  </javac>
+</target>
+
 
   <target name="test" depends="compile">
-    <mkdir dir="${build.dir}/test-reports"/>
-    <junit printsummary="yes"
-           haltonfailure="yes"
-           fork="true">
-      <classpath>
-        <pathelement path="${build.dir}/classes"/>
-        <fileset dir="${lib.dir}">
-          <include name="**/*.jar"/>
-        </fileset>
-      </classpath>
-      <!-- this makes Ant print each failure stack‐trace on the console -->
-      <formatter type="plain" usefile="false"/>
+  <mkdir dir="${build.dir}/test-reports"/>
+  <junit printsummary="yes" haltonfailure="yes" fork="true">
+    <classpath>
+      <pathelement path="${build.dir}/classes"/>
+      <fileset dir="${lib.dir}">
+        <include name="**/*.jar"/>
+      </fileset>
+    </classpath>
 
-      <batchtest todir="${build.dir}/test-reports">
-        <fileset dir="${test.dir}">
-          <include name="**/*Test.java"/>
-        </fileset>
-      </batchtest>
-    </junit>
-  </target>
+    <!-- print stack traces -->
+    <formatter type="plain" usefile="false"/>
+
+    <batchtest todir="${build.dir}/test-reports">
+      <!-- now point at the classes folder -->
+      <fileset dir="${build.dir}/classes">
+        <include name="**/*Test.class"/>
+      </fileset>
+    </batchtest>
+  </junit>
+</target>
+
 
 
 
