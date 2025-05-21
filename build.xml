@@ -1,70 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="ChatApp" default="test" basedir=".">
+<project name="ChatApp" default="jar">
   <property name="src.dir"   value="src"/>
   <property name="test.dir"  value="test"/>
   <property name="build.dir" value="build"/>
-  <property name="dist.dir"  value="dist"/>
   <property name="lib.dir"   value="lib"/>
 
   <target name="clean">
     <delete dir="${build.dir}"/>
-    <delete dir="${dist.dir}"/>
   </target>
 
   <target name="compile" depends="clean">
-  <mkdir dir="${build.dir}/classes"/>
-
-  <!-- compile both main AND test sources into the same classes dir -->
-  <javac destdir="${build.dir}/classes"
-         includeantruntime="false">
-    <!-- production code -->
-    <src path="${src.dir}"/>
-    <!-- test code -->
-    <src path="${test.dir}"/>
-    <classpath>
-      <fileset dir="${lib.dir}">
-        <include name="**/*.jar"/>
-      </fileset>
-    </classpath>
-  </javac>
-</target>
-
+    <mkdir dir="${build.dir}/classes"/>
+    <javac srcdir="${src.dir}"
+           destdir="${build.dir}/classes"
+           includeantruntime="false">
+      <classpath>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      </classpath>
+    </javac>
+  </target>
 
   <target name="test" depends="compile">
-  <mkdir dir="${build.dir}/test-reports"/>
-  <junit printsummary="yes" haltonfailure="yes" fork="true">
-    <classpath>
-      <pathelement path="${build.dir}/classes"/>
-      <fileset dir="${lib.dir}">
-        <include name="**/*.jar"/>
-      </fileset>
-    </classpath>
-
-    <!-- print stack traces -->
-    <formatter type="plain" usefile="false"/>
-
-    <batchtest todir="${build.dir}/test-reports">
-      <!-- now point at the classes folder -->
-      <fileset dir="${build.dir}/classes">
-        <include name="**/*Test.class"/>
-      </fileset>
-    </batchtest>
-  </junit>
-</target>
-
-
-
+    <mkdir dir="${build.dir}/test-reports"/>
+    <junit printsummary="yes" haltonfailure="yes" fork="true">
+      <classpath>
+        <pathelement path="${build.dir}/classes"/>
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+      </classpath>
+      <batchtest todir="${build.dir}/test-reports">
+        <fileset dir="${build.dir}/classes">
+          <include name="**/*Test.class"/>
+        </fileset>
+      </batchtest>
+      <formatter type="plain" usefile="false"/>
+    </junit>
+  </target>
 
   <target name="jar" depends="test">
-    <mkdir dir="${dist.dir}"/>
-    <jar destfile="${dist.dir}/ChatApp.jar"
-         basedir="${build.dir}/classes">
+    <mkdir dir="dist"/>
+    <jar destfile="dist/ChatApp.jar" basedir="${build.dir}/classes">
       <manifest>
-        <attribute name="Main-Class"
-                   value="com.mycompany.chatapp.ChatApp"/>
+        <attribute name="Main-Class" value="com.mycompany.chatapp.ChatApp"/>
       </manifest>
     </jar>
   </target>
 </project>
+
 
  

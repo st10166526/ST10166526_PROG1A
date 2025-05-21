@@ -4,56 +4,76 @@
  */
 package com.mycompany.chatapp;
 
-import java.util.regex.Pattern;
-
-/**
- * Handles all registration/login logic.
- */
-// Login.java
 public class Login {
     private String storedUsername;
     private String storedPassword;
     private boolean storedLoginStatus;
 
+    /** Username must contain “_” and be ≤5 chars. */
     public boolean checkUserName(String username) {
-        return username.contains("_") && username.length() <= 5;
+        return username != null
+            && username.contains("_")
+            && username.length() <= 5;
     }
 
+    /**
+     * Password must be ≥8 chars, contain at least one uppercase,
+     * one digit, and one special character.
+     */
     public boolean checkPasswordComplexity(String password) {
-        return password.matches("^(?=.{8,}$)(?=.*[A-Z])(?=.*\\d)(?=.*\\W).*");
+        return password != null
+            && password.matches("^(?=.{8,}$)(?=.*[A-Z])(?=.*\\d)(?=.*\\W).*");
     }
 
+    /** Cell phone must start with +27 and then 10 digits. */
     public boolean checkCellPhoneNumber(String cell) {
-        // Supports South African numbers: +27 followed by 10 digits
-        // Generated with ChatGPT (OpenAI) on 2025-05-20. See APA style: https://apastyle.apa.org/blog/how-to-cite-chatgpt
-        return cell.matches("^\\+27\\d{10}$");
+        return cell != null
+            && cell.matches("^\\+27\\d{10}$");
     }
 
-    public String registerUser(String username, String password, String cell) {
+    /**
+     * Attempts to register; returns an explanatory message.
+     * Does not throw.
+     */
+    public String registerUser(String username,
+                               String password,
+                               String cell) {
         if (!checkUserName(username)) {
-            return "Username is not correctly formatted, please ensure that your username contains an underscore and is no more than five characters in length.";
+            return "Username is not correctly formatted.\n"
+                 + "Must contain an underscore and be no more than 5 characters.\n"
+                 + "Example: user_";
         }
         if (!checkPasswordComplexity(password)) {
-            return "Password is not correctly formatted; please ensure that the password contains at least eight characters, a capital letter, a number, and a special character.";
+            return "Password is not correctly formatted.\n"
+                 + "Must be at least 8 characters, contain\n"
+                 + " one uppercase letter, one digit, one special char.\n"
+                 + "Example: Abcdef1!";
         }
         if (!checkCellPhoneNumber(cell)) {
-            return "Cell phone number is not correctly formatted, please ensure you include your country code";
+            return "Cell phone number is not correctly formatted.\n"
+                 + "Must start with +27 and then 10 digits.\n"
+                 + "Example: +271234567890";
         }
         this.storedUsername = username;
         this.storedPassword = password;
         return "User successfully captured";
     }
 
-    public boolean loginUser(String username, String password) {
-        this.storedLoginStatus = username.equals(this.storedUsername) && password.equals(this.storedPassword);
-        return this.storedLoginStatus;
+    /** Logs in; sets status. */
+    public void loginUser(String username, String password) {
+        this.storedLoginStatus =
+            username != null
+         && password != null
+         && username.equals(storedUsername)
+         && password.equals(storedPassword);
     }
 
+    /** Returns an explanatory login status message. */
     public String returnLoginStatus() {
-        if (this.storedLoginStatus) {
-            return "Welcome " + this.storedUsername + ", nice to see you again";
+        if (storedLoginStatus) {
+            return "Welcome " + storedUsername + ", nice to see you again";
         } else {
-            return "Username or password incorrect, please try again";
+            return "Username or password incorrect,\nplease try again";
         }
     }
 }

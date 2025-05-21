@@ -4,109 +4,231 @@
  */
 package com.mycompany.chatapp;
 
-/**
- *
- * @author Client
- */
-// ChatApp.java
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import javax.swing.JOptionPane;
+import java.util.ArrayList;
+import java.util.List;
+import java.io.IOException;
 
-public class ChatApp extends JFrame {
-    private final Login auth;
-    private final CardLayout cardLayout;
-    private final JPanel cards;
 
-    public ChatApp() {
-        super("ChatApp: Registration & Login");
-        auth = new Login();
-        cardLayout = new CardLayout();
-        cards = new JPanel(cardLayout);
-        initRegistrationPanel();
-        initLoginPanel();
-        add(cards);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        pack();
-        setLocationRelativeTo(null);
-    }
-
-    private void initRegistrationPanel() {
-        JPanel regPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5,5,5,5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        JLabel userLabel = new JLabel("Username:");
-        JTextField userField = new JTextField(15);
-        JLabel passLabel = new JLabel("Password:");
-        JPasswordField passField = new JPasswordField(15);
-        JLabel cellLabel = new JLabel("Cell Phone:");
-        JTextField cellField = new JTextField(15);
-        JLabel msgLabel = new JLabel(" ");
-        JButton registerBtn = new JButton("Register");
-
-        gbc.gridx = 0; gbc.gridy = 0; regPanel.add(userLabel, gbc);
-        gbc.gridx = 1; regPanel.add(userField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; regPanel.add(passLabel, gbc);
-        gbc.gridx = 1; regPanel.add(passField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; regPanel.add(cellLabel, gbc);
-        gbc.gridx = 1; regPanel.add(cellField, gbc);
-        gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 2; regPanel.add(registerBtn, gbc);
-        gbc.gridy = 4; regPanel.add(msgLabel, gbc);
-
-        registerBtn.addActionListener(e -> {
-            String username = userField.getText();
-            String password = new String(passField.getPassword());
-            String cell    = cellField.getText();
-            String result  = auth.registerUser(username, password, cell);
-            msgLabel.setText(result);
-            if ("User successfully captured".equals(result)) {
-                cardLayout.show(cards, "loginPanel");
-            }
-        });
-
-        cards.add(regPanel, "regPanel");
-    }
-
-    private void initLoginPanel() {
-        JPanel loginPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5,5,5,5);
-        gbc.anchor = GridBagConstraints.WEST;
-
-        JLabel userLabel = new JLabel("Username:");
-        JTextField userField = new JTextField(15);
-        JLabel passLabel = new JLabel("Password:");
-        JPasswordField passField = new JPasswordField(15);
-        JLabel msgLabel = new JLabel(" ");
-        JButton loginBtn = new JButton("Login");
-
-        gbc.gridx = 0; gbc.gridy = 0; loginPanel.add(userLabel, gbc);
-        gbc.gridx = 1; loginPanel.add(userField, gbc);
-        gbc.gridx = 0; gbc.gridy = 1; loginPanel.add(passLabel, gbc);
-        gbc.gridx = 1; loginPanel.add(passField, gbc);
-        gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 2; loginPanel.add(loginBtn, gbc);
-        gbc.gridy = 3; loginPanel.add(msgLabel, gbc);
-
-        loginBtn.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent ev) {
-                String username = userField.getText();
-                String password = new String(passField.getPassword());
-                auth.loginUser(username, password);
-                msgLabel.setText(auth.returnLoginStatus());
-            }
-        });
-
-        cards.add(loginPanel, "loginPanel");
-    }
-
+public class ChatApp {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            ChatApp frame = new ChatApp();
-            frame.setVisible(true);
-        });
+        // Part 1: Registration
+        Login auth = new Login();
+        JOptionPane.showMessageDialog(
+            null,
+            "=== QuickChat Registration ==="
+        );
+        while (true) {
+            String u = JOptionPane.showInputDialog(
+                null,
+                "Enter username:\nExample: user_"
+            );
+            if (u == null) System.exit(0);
+            String p = JOptionPane.showInputDialog(
+                null,
+                "Enter password:\nExample: Abcdef1!"
+            );
+            if (p == null) System.exit(0);
+            String c = JOptionPane.showInputDialog(
+                null,
+                "Enter cell phone (#):\nInclude +27, Example: +271234567890"
+            );
+            if (c == null) System.exit(0);
+
+            String res = auth.registerUser(u, p, c);
+            JOptionPane.showMessageDialog(null, res);
+            if ("User successfully captured".equals(res)) {
+                break;
+            }
+        }
+
+        // Part 1: Login
+        JOptionPane.showMessageDialog(
+            null,
+            "=== QuickChat Login ==="
+        );
+        while (true) {
+            String u = JOptionPane.showInputDialog(null, "Username:");
+            if (u == null) System.exit(0);
+            String p = JOptionPane.showInputDialog(null, "Password:");
+            if (p == null) System.exit(0);
+
+            auth.loginUser(u, p);
+            String res = auth.returnLoginStatus();
+            JOptionPane.showMessageDialog(null, res);
+            if (res.startsWith("Welcome ")) {
+                break;
+            }
+        }
+
+        // Part 2: Messaging
+        JOptionPane.showMessageDialog(
+            null,
+            "=== Welcome to QuickChat Messaging ==="
+        );
+        List<Message> sent = new ArrayList<>();
+
+        while (true) {
+            String m = JOptionPane.showInputDialog(
+                null,
+                "Select:\n"
+              + "1) Send Messages\n"
+              + "2) Show recently sent\n"
+              + "3) Quit"
+            );
+            if (m == null) System.exit(0);
+
+            int choice;
+            try {
+                choice = Integer.parseInt(m);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Invalid menu choice. Enter 1, 2 or 3."
+                );
+                continue;
+            }
+
+            switch (choice) {
+                case 1:
+                    sendMessages(sent);
+                    break;
+                case 2:
+                    showSentMessages(sent);
+                    break;
+                case 3:
+                    JOptionPane.showMessageDialog(null, "Goodbye!");
+                    System.exit(0);
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Invalid menu choice. Enter 1, 2 or 3."
+                    );
+            }
+        }
+    }
+
+    /** Handles the “Send Messages” flow with full validation. */
+    private static void sendMessages(List<Message> sent) {
+        int n;
+        while (true) {
+            String ns = JOptionPane.showInputDialog(
+                null,
+                "How many messages would you like to send?"
+            );
+            if (ns == null) return;
+            try {
+                n = Integer.parseInt(ns);
+                if (n <= 0) throw new NumberFormatException();
+                break;
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Please enter a positive integer."
+                );
+            }
+        }
+
+        Message.resetSequence();
+        for (int i = 1; i <= n; i++) {
+            Message msgObj;
+            // Validate recipient & text together
+            while (true) {
+                String rec = JOptionPane.showInputDialog(
+                    null,
+                    String.format(
+                        "Message %d/%d – Enter recipient (#):\n+27XXXXXXXXXX",
+                        i, n
+                    )
+                );
+                if (rec == null) return;
+                String txt = JOptionPane.showInputDialog(
+                    null,
+                    String.format(
+                        "Message %d/%d – Enter text (≤250 chars):",
+                        i, n
+                    )
+                );
+                if (txt == null) return;
+
+                try {
+                    msgObj = new Message(rec, txt);
+                    break;
+                } catch (IllegalArgumentException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        ex.getMessage()
+                    );
+                }
+            }
+
+            // Send/Discard/Store prompt
+            int opt;
+            while (true) {
+                String os = JOptionPane.showInputDialog(
+                    null,
+                    "Choose an option:\n"
+                  + "1) Send\n"
+                  + "2) Disregard\n"
+                  + "3) Store"
+                );
+                if (os == null) return;
+                try {
+                    opt = Integer.parseInt(os);
+                    if (opt < 1 || opt > 3) throw new NumberFormatException();
+                    break;
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Invalid choice – enter 1, 2 or 3."
+                    );
+                }
+            }
+
+            // Perform action
+            String result = msgObj.sendMessage(opt);
+            JOptionPane.showMessageDialog(null, result);
+
+            if (opt == 1) {
+                // Show details and count
+                JOptionPane.showMessageDialog(null, msgObj.getDetails());
+                sent.add(msgObj);
+            } else if (opt == 3) {
+                try {
+                    Message.storeMessage(msgObj);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Error storing message:\n" + ex.getMessage()
+                    );
+                }
+            }
+        }
+
+        JOptionPane.showMessageDialog(
+            null,
+            "Total messages sent: " + sent.size()
+        );
+    }
+
+    /** Displays all the messages sent so far. */
+    private static void showSentMessages(List<Message> sent) {
+        if (sent.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                null,
+                "No messages have been sent yet."
+            );
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Message m : sent) {
+            sb.append(m.getDetails())
+              .append("\n-------------------\n");
+        }
+        JOptionPane.showMessageDialog(null, sb.toString());
     }
 }
+
+
 
