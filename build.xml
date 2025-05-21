@@ -35,7 +35,7 @@
           <include name="**/*.jar"/>
         </fileset>
       </classpath>
-      <!-- Send failure details to the Actions log -->
+      <!-- this makes Ant print each failure stack‐trace on the console -->
       <formatter type="plain" usefile="false"/>
 
       <batchtest todir="${build.dir}/test-reports">
@@ -45,6 +45,7 @@
       </batchtest>
     </junit>
   </target>
+
 
 
   <target name="jar" depends="test">
