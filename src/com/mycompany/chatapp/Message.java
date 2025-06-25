@@ -1,27 +1,25 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.chatapp;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Formatter;
 import java.util.Random;
 
 public class Message {
     private static int sequence = 0;
 
     private final String messageID;
-    private final int msgNumber;
+    private final int    msgNumber;
     private final String recipient;
     private final String text;
+    private final String flag;
     private final String hash;
 
     /**
-     * Constructs a Message, validating recipient & text length.
+     * Constructs a Message with its “flag” of Sent/Stored/Disregard.
      * Throws IllegalArgumentException on any invalid field.
      */
-    public Message(String recipient, String text) {
+    public Message(String recipient, String text, String flag) {
         if (recipient == null || !checkRecipientCell(recipient)) {
             throw new IllegalArgumentException(
                 "Invalid recipient number.\n"
@@ -31,8 +29,7 @@ public class Message {
         }
         if (text == null || text.isEmpty()) {
             throw new IllegalArgumentException(
-                "Message text cannot be empty.\n"
-              + "Enter up to 250 characters."
+                "Message text cannot be empty (max 250 chars)."
             );
         }
         if (text.length() > 250) {
@@ -42,15 +39,15 @@ public class Message {
               + ", please reduce size."
             );
         }
-
         this.messageID = generateMessageID();
         this.msgNumber = sequence++;
         this.recipient = recipient;
         this.text      = text;
+        this.flag      = flag;
         this.hash      = createMessageHash();
     }
 
-    /** Internal: random 10-digit ID. */
+    /** Random 10-digit ID. */
     private String generateMessageID() {
         Random rnd = new Random();
         StringBuilder sb = new StringBuilder(10);
@@ -60,26 +57,44 @@ public class Message {
         return sb.toString();
     }
 
-    /** Validates a 10-digit numeric ID string. */
-    public boolean checkMessageID(String id) {
-        return id != null && id.matches("\\d{10}");
-    }
-
-    /** Validates cell: +27 followed by 10 digits. */
+    /** Validate +27 followed by 10 digits. */
     public boolean checkRecipientCell(String cell) {
         return cell.matches("^\\+27\\d{10}$");
     }
 
-    /** Builds the UPPERCASE hash: XX:seq:FIRSTLAST */
-    public String createMessageHash() {
+    /** Build an uppercase hash: first2Chars:seq:firstWord+lastWord */
+    private String createMessageHash() {
         String firstTwo = messageID.substring(0, 2);
-        String[] words = text.trim().split("\\s+");
-        String first   = words[0];
-        String last    = words[words.length - 1];
-        return (firstTwo
-              + ":" + msgNumber
-              + ":" + (first + last))
-              .toUpperCase();
+        String[] words  = text.trim().split("\\s+");
+        String first    = words[0];
+        String last     = words[words.length - 1];
+        String raw      = firstTwo + ":" + msgNumber + ":" + (first + last);
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(raw.getBytes());
+            Formatter fmt = new Formatter();
+            for (byte b : digest) fmt.format("%02x", b);
+            String result = fmt.toString().toUpperCase();
+            fmt.close();
+            return result;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // ——— Getters for use elsewhere ————————————————————————————————
+    public String getMessageID()  { return messageID; }
+    public String getHash()       { return hash;      }
+    public String getRecipient()  { return recipient; }
+    public String getText()       { return text;      }
+    public String getFlag()       { return flag;      }
+
+    /** Human-readable details */
+    public String getDetails() {
+        return String.format(
+            "MessageID: %s%nHash: %s%nFlag: %s%nRecipient: %s%nText: %s",
+            messageID, hash, flag, recipient, text
+        );
     }
 
     /**
@@ -87,47 +102,15 @@ public class Message {
      * 1 = Send, 2 = Disregard, 3 = Store.
      */
     public String sendMessage(int choice) {
-        switch (choice) {
-            case 1: return "Message successfully sent.";
-            case 2: return "Press 0 to delete message.";
-            case 3: return "Message successfully stored.";
-            default:
-                return "Invalid option. Enter 1, 2 or 3.";
-        }
+        return switch (choice) {
+            case 1 -> "Message successfully sent.";
+            case 2 -> "Press 0 to delete message.";
+            case 3 -> "Message successfully stored.";
+            default -> "Invalid option. Enter 1, 2 or 3.";
+        };
     }
 
-    /** Full details to display after sending. */
-    public String getDetails() {
-        return String.format(
-            "MessageID: %s%n"
-          + "Hash: %s%n"
-          + "Recipient: %s%n"
-          + "Text: %s",
-          messageID, hash, recipient, text
-        );
-    }
-
-    /** Appends a JSON line to messages.json (creates if needed). */
-    public static void storeMessage(Message m) throws IOException {
-        try (FileWriter fw = new FileWriter("messages.json", true)) {
-            String safeText = m.text.replace("\"", "\\\"");
-            String entry = String.format(
-              "{\"id\":\"%s\",\"hash\":\"%s\","
-            + "\"recipient\":\"%s\",\"text\":\"%s\"}%n",
-              m.messageID, m.hash, m.recipient, safeText
-            );
-            fw.write(entry);
-        }
-    }
-
-    // Getters for testing
-    public String getMessageID()  { return messageID; }
-    public int    getMsgNumber()  { return msgNumber; }
-    public String getRecipient()  { return recipient; }
-    public String getText()       { return text; }
-    public String getHash()       { return hash; }
-
-    /** Resets sequence counter (for repeatable tests). */
+    /** Reset sequence (for repeatable tests) */
     public static void resetSequence() {
         sequence = 0;
     }
