@@ -5,34 +5,48 @@
 package com.mycompany.chatapp;
 
 import javax.swing.JOptionPane;
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.io.IOException;
+
 
 public class ChatApp {
-
     public static void main(String[] args) {
+        // Part 1: Registration
         Login auth = new Login();
-        // ── Registration ─────────────────────────────────────────────
-        JOptionPane.showMessageDialog(null, "=== QuickChat Registration ===");
+        JOptionPane.showMessageDialog(
+            null,
+            "=== QuickChat Registration ==="
+        );
         while (true) {
-            String u = JOptionPane.showInputDialog(null,
-                "Enter username (e.g. user_):");
+            String u = JOptionPane.showInputDialog(
+                null,
+                "Enter username:\nExample: user_"
+            );
             if (u == null) System.exit(0);
-            String p = JOptionPane.showInputDialog(null,
-                "Enter password (e.g. Abcdef1!):");
+            String p = JOptionPane.showInputDialog(
+                null,
+                "Enter password:\nExample: Abcdef1!"
+            );
             if (p == null) System.exit(0);
-            String c = JOptionPane.showInputDialog(null,
-                "Enter cell phone (+27XXXXXXXXXX):");
+            String c = JOptionPane.showInputDialog(
+                null,
+                "Enter cell phone (#):\nInclude +27, Example: +271234567890"
+            );
             if (c == null) System.exit(0);
 
             String res = auth.registerUser(u, p, c);
             JOptionPane.showMessageDialog(null, res);
-            if (res.startsWith("User successfully")) break;
+            if ("User successfully captured".equals(res)) {
+                break;
+            }
         }
 
-        // ── Login ────────────────────────────────────────────────────
-        JOptionPane.showMessageDialog(null, "=== QuickChat Login ===");
+        // Part 1: Login
+        JOptionPane.showMessageDialog(
+            null,
+            "=== QuickChat Login ==="
+        );
         while (true) {
             String u = JOptionPane.showInputDialog(null, "Username:");
             if (u == null) System.exit(0);
@@ -42,186 +56,179 @@ public class ChatApp {
             auth.loginUser(u, p);
             String res = auth.returnLoginStatus();
             JOptionPane.showMessageDialog(null, res);
-            if (res.startsWith("Welcome ")) break;
+            if (res.startsWith("Welcome ")) {
+                break;
+            }
         }
 
-        // ── Part 3 Manager Setup ────────────────────────────────────
-        MessageManager mgr = new MessageManager();
-        try {
-            mgr.loadFromJson(new File("messages.json"));
-        } catch (IOException ex) {
-            JOptionPane.showMessageDialog(null,
-                "Could not load messages.json:\n" + ex.getMessage());
-        }
+        // Part 2: Messaging
+        JOptionPane.showMessageDialog(
+            null,
+            "=== Welcome to QuickChat Messaging ==="
+        );
+        List<Message> sent = new ArrayList<>();
 
-        // ── Main Menu ───────────────────────────────────────────────
-        mainMenu(auth, mgr);
-    }
-
-    private static void mainMenu(Login auth, MessageManager mgr) {
         while (true) {
-            String choice = JOptionPane.showInputDialog(null,
+            String m = JOptionPane.showInputDialog(
+                null,
                 "Select:\n"
               + "1) Send Messages\n"
-              + "2) Show Sent Report\n"
-              + "3) Other Operations (a–f)\n"
-              + "4) Quit");
-            if (choice == null) System.exit(0);
+              + "2) Show recently sent\n"
+              + "3) Quit"
+            );
+            if (m == null) System.exit(0);
+
+            int choice;
+            try {
+                choice = Integer.parseInt(m);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Invalid menu choice. Enter 1, 2 or 3."
+                );
+                continue;
+            }
 
             switch (choice) {
-                case "1":
-                    sendFlow(auth, mgr);
+                case 1:
+                    sendMessages(sent);
                     break;
-                case "2":
-                    JOptionPane.showMessageDialog(null, mgr.generateReport());
+                case 2:
+                    showSentMessages(sent);
                     break;
-                case "3":
-                    submenu(auth, mgr);
-                    break;
-                case "4":
+                case 3:
                     JOptionPane.showMessageDialog(null, "Goodbye!");
                     System.exit(0);
+                    break;
                 default:
-                    JOptionPane.showMessageDialog(null,
-                        "Invalid choice. Enter 1, 2, 3 or 4.");
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Invalid menu choice. Enter 1, 2 or 3."
+                    );
             }
         }
     }
 
-    private static void sendFlow(Login auth, MessageManager mgr) {
-        Message.resetSequence();
-
+    /** Handles the “Send Messages” flow with full validation. */
+    private static void sendMessages(List<Message> sent) {
         int n;
         while (true) {
-            String ns = JOptionPane.showInputDialog(null,
-                "How many messages to send?");
+            String ns = JOptionPane.showInputDialog(
+                null,
+                "How many messages would you like to send?"
+            );
             if (ns == null) return;
             try {
                 n = Integer.parseInt(ns);
                 if (n <= 0) throw new NumberFormatException();
                 break;
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(null,
-                    "Please enter a positive integer.");
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Please enter a positive integer."
+                );
             }
         }
 
+        Message.resetSequence();
         for (int i = 1; i <= n; i++) {
-            Message msg;
-            // Recipient & text
+            Message msgObj;
+            // Validate recipient & text together
             while (true) {
-                String rec = JOptionPane.showInputDialog(null,
-                    "Message " + i + "/" + n + " – recipient (+27XXXXXXXXXX):");
+                String rec = JOptionPane.showInputDialog(
+                    null,
+                    String.format(
+                        "Message %d/%d – Enter recipient (#):\n+27XXXXXXXXXX",
+                        i, n
+                    )
+                );
                 if (rec == null) return;
-                String txt = JOptionPane.showInputDialog(null,
-                    "Message " + i + "/" + n + " – text (≤250 chars):");
+                String txt = JOptionPane.showInputDialog(
+                    null,
+                    String.format(
+                        "Message %d/%d – Enter text (≤250 chars):",
+                        i, n
+                    )
+                );
                 if (txt == null) return;
+
                 try {
-                    msg = new Message(rec, txt, "");
+                    msgObj = new Message(rec, txt);
                     break;
                 } catch (IllegalArgumentException ex) {
-                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                    JOptionPane.showMessageDialog(
+                        null,
+                        ex.getMessage()
+                    );
                 }
             }
 
-            // Action
+            // Send/Discard/Store prompt
             int opt;
             while (true) {
-                String os = JOptionPane.showInputDialog(null,
-                    "Choose:\n1) Send\n2) Disregard\n3) Store");
+                String os = JOptionPane.showInputDialog(
+                    null,
+                    "Choose an option:\n"
+                  + "1) Send\n"
+                  + "2) Disregard\n"
+                  + "3) Store"
+                );
                 if (os == null) return;
                 try {
                     opt = Integer.parseInt(os);
                     if (opt < 1 || opt > 3) throw new NumberFormatException();
                     break;
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(null,
-                        "Invalid choice. Enter 1, 2 or 3.");
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Invalid choice – enter 1, 2 or 3."
+                    );
                 }
             }
 
-            String flag = switch (opt) {
-                case 1 -> "Sent";
-                case 2 -> "Disregard";
-                default -> "Stored";
-            };
+            // Perform action
+            String result = msgObj.sendMessage(opt);
+            JOptionPane.showMessageDialog(null, result);
 
-            // Rebuild with flag, add to manager
-            msg = new Message(msg.getRecipient(), msg.getText(), flag);
-            mgr.addMessage(msg);
-
-            JOptionPane.showMessageDialog(null,
-                msg.sendMessage(opt));
             if (opt == 1) {
-                JOptionPane.showMessageDialog(null, msg.getDetails());
+                // Show details and count
+                JOptionPane.showMessageDialog(null, msgObj.getDetails());
+                sent.add(msgObj);
+            } else if (opt == 3) {
+                try {
+                    Message.storeMessage(msgObj);
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        null,
+                        "Error storing message:\n" + ex.getMessage()
+                    );
+                }
             }
         }
+
+        JOptionPane.showMessageDialog(
+            null,
+            "Total messages sent: " + sent.size()
+        );
     }
 
-    private static void submenu(Login auth, MessageManager mgr) {
-        String s = JOptionPane.showInputDialog(null,
-            "a) Sender→Recipient of sent\n"
-          + "b) Longest sent message\n"
-          + "c) Lookup by Message ID\n"
-          + "d) Messages to Recipient\n"
-          + "e) Delete by Hash\n"
-          + "f) Full Sent Report");
-        if (s == null) return;
-
-        switch (s.toLowerCase()) {
-            case "a" -> {
-                List<String> list = mgr.listSentSenderRecipient(
-                    auth.getStoredUsername());
-                JOptionPane.showMessageDialog(null,
-                    String.join("\n", list));
-            }
-            case "b" -> {
-                String lm = mgr.longestSentMessage()
-                    .orElse("No sent messages.");
-                JOptionPane.showMessageDialog(null, lm);
-            }
-            case "c" -> {
-                String id = JOptionPane.showInputDialog(null,
-                    "Enter Message ID:");
-                mgr.findByID(id).ifPresentOrElse(
-                    m -> JOptionPane.showMessageDialog(null,
-                        "To: " + m.getRecipient() + "\n" + m.getText()),
-                    () -> JOptionPane.showMessageDialog(null, "Not found.")
-                );
-            }
-            case "d" -> {
-                String rc = JOptionPane.showInputDialog(null,
-                    "Enter recipient (+27XXXXXXXXXX):");
-                List<Message> hits = mgr.findByRecipient(rc);
-                if (hits.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "No messages found.");
-                } else {
-                    StringBuilder sb = new StringBuilder();
-                    for (Message m : hits) {
-                        sb.append(m.getDetails()).append("\n---\n");
-                    }
-                    JOptionPane.showMessageDialog(null, sb);
-                }
-            }
-            case "e" -> {
-                String h = JOptionPane.showInputDialog(null,
-                    "Enter message hash:");
-                boolean d = mgr.deleteByHash(h);
-                JOptionPane.showMessageDialog(null,
-                    d ? "Deleted." : "Not found.");
-            }
-            case "f" -> {
-                JOptionPane.showMessageDialog(null,
-                    mgr.generateReport());
-            }
-            default -> {
-                JOptionPane.showMessageDialog(null,
-                    "Invalid option a–f.");
-            }
+    /** Displays all the messages sent so far. */
+    private static void showSentMessages(List<Message> sent) {
+        if (sent.isEmpty()) {
+            JOptionPane.showMessageDialog(
+                null,
+                "No messages have been sent yet."
+            );
+            return;
         }
+        StringBuilder sb = new StringBuilder();
+        for (Message m : sent) {
+            sb.append(m.getDetails())
+              .append("\n-------------------\n");
+        }
+        JOptionPane.showMessageDialog(null, sb.toString());
     }
 }
-
 
 
 

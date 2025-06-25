@@ -22,7 +22,7 @@ public class Login {
      */
     public boolean checkPasswordComplexity(String password) {
         return password != null
-            && password.matches("^(?=.{8,}$)(?=.*[A-Z])(?=.*\\d)(?=.*\\W).*$");
+            && password.matches("^(?=.{8,}$)(?=.*[A-Z])(?=.*\\d)(?=.*\\W).*");
     }
 
     /** Cell phone must start with +27 and then 10 digits. */
@@ -33,48 +33,48 @@ public class Login {
 
     /**
      * Attempts to register; returns an explanatory message.
+     * Does not throw.
      */
     public String registerUser(String username,
                                String password,
                                String cell) {
         if (!checkUserName(username)) {
             return "Username is not correctly formatted.\n"
-                 + "Must contain an underscore and be no more than 5 characters.";
+                 + "Must contain an underscore and be no more than 5 characters.\n"
+                 + "Example: user_";
         }
         if (!checkPasswordComplexity(password)) {
             return "Password is not correctly formatted.\n"
-                 + "Must be at least 8 characters, contain one uppercase, one digit, one special char.";
+                 + "Must be at least 8 characters, contain\n"
+                 + " one uppercase letter, one digit, one special char.\n"
+                 + "Example: Abcdef1!";
         }
         if (!checkCellPhoneNumber(cell)) {
             return "Cell phone number is not correctly formatted.\n"
-                 + "Must start with +27 and then 10 digits.";
+                 + "Must start with +27 and then 10 digits.\n"
+                 + "Example: +271234567890";
         }
         this.storedUsername = username;
         this.storedPassword = password;
         return "User successfully captured";
     }
 
-    /** Logs in; sets internal status. */
+    /** Logs in; sets status. */
     public void loginUser(String username, String password) {
         this.storedLoginStatus =
-               username != null
-            && password != null
-            && username.equals(storedUsername)
-            && password.equals(storedPassword);
+            username != null
+         && password != null
+         && username.equals(storedUsername)
+         && password.equals(storedPassword);
     }
 
-    /** Returns explanatory login‐status message. */
+    /** Returns an explanatory login status message. */
     public String returnLoginStatus() {
         if (storedLoginStatus) {
             return "Welcome " + storedUsername + ", nice to see you again";
         } else {
-            return "Username or password incorrect, please try again";
+            return "Username or password incorrect,\nplease try again";
         }
-    }
-
-    /** Expose the registered user for Part 3 reports */
-    public String getStoredUsername() {
-        return storedUsername;
     }
 }
 
