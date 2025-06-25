@@ -125,12 +125,16 @@ public class Message {
      * 1 = Send, 2 = Disregard, 3 = Store.
      */
     public String sendMessage(int choice) {
-        return switch (choice) {
-            case 1 -> "Message successfully sent.";
-            case 2 -> "Press 0 to delete message.";
-            case 3 -> "Message successfully stored.";
-            default -> "Invalid option. Enter 1, 2 or 3.";
-        };
+switch (choice) {
+    case 1:
+        return "Message successfully sent.";
+    case 2:
+        return "Press 0 to delete message.";
+    case 3:
+        return "Message successfully stored.";
+    default:
+        return "Invalid option. Enter 1, 2 or 3.";
+}
     }
 
     /** Reset sequence counter (for repeatable tests). */

@@ -140,11 +140,18 @@ public class ChatApp {
                 }
             }
 
-            String flag = switch (opt) {
-                case 1 -> "Sent";
-                case 2 -> "Disregard";
-                default -> "Stored";
-            };
+String flag;
+switch (opt) {
+    case 1:
+        flag = "Sent";
+        break;
+    case 2:
+        flag = "Disregard";
+        break;
+    default:
+        flag = "Stored";
+        break;
+}
 
             // Rebuild with flag, add to manager
             msg = new Message(msg.getRecipient(), msg.getText(), flag);
@@ -167,60 +174,59 @@ public class ChatApp {
           + "e) Delete by Hash\n"
           + "f) Full Sent Report");
         if (s == null) return;
-
-        switch (s.toLowerCase()) {
-            case "a" -> {
-                List<String> list = mgr.listSentSenderRecipient(
-                    auth.getStoredUsername());
-                JOptionPane.showMessageDialog(null,
-                    String.join("\n", list));
+switch (s.toLowerCase()) {
+    case "a":
+        List<String> list = mgr.listSentSenderRecipient(
+            auth.getStoredUsername());
+        JOptionPane.showMessageDialog(null,
+            String.join("\n", list));
+        break;
+    case "b":
+        String lm = mgr.longestSentMessage()
+            .orElse("No sent messages.");
+        JOptionPane.showMessageDialog(null, lm);
+        break;
+    case "c":
+        String id = JOptionPane.showInputDialog(null,
+            "Enter Message ID:");
+        mgr.findByID(id).ifPresentOrElse(
+            m -> JOptionPane.showMessageDialog(null,
+                "To: " + m.getRecipient() + "\n" + m.getText()),
+            () -> JOptionPane.showMessageDialog(null, "Not found.")
+        );
+        break;
+    case "d":
+        String rc = JOptionPane.showInputDialog(null,
+            "Enter recipient (+27XXXXXXXXXX):");
+        List<Message> hits = mgr.findByRecipient(rc);
+        if (hits.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "No messages found.");
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (Message m : hits) {
+                sb.append(m.getDetails()).append("\n---\n");
             }
-            case "b" -> {
-                String lm = mgr.longestSentMessage()
-                    .orElse("No sent messages.");
-                JOptionPane.showMessageDialog(null, lm);
-            }
-            case "c" -> {
-                String id = JOptionPane.showInputDialog(null,
-                    "Enter Message ID:");
-                mgr.findByID(id).ifPresentOrElse(
-                    m -> JOptionPane.showMessageDialog(null,
-                        "To: " + m.getRecipient() + "\n" + m.getText()),
-                    () -> JOptionPane.showMessageDialog(null, "Not found.")
-                );
-            }
-            case "d" -> {
-                String rc = JOptionPane.showInputDialog(null,
-                    "Enter recipient (+27XXXXXXXXXX):");
-                List<Message> hits = mgr.findByRecipient(rc);
-                if (hits.isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "No messages found.");
-                } else {
-                    StringBuilder sb = new StringBuilder();
-                    for (Message m : hits) {
-                        sb.append(m.getDetails()).append("\n---\n");
-                    }
-                    JOptionPane.showMessageDialog(null, sb);
-                }
-            }
-            case "e" -> {
-                String h = JOptionPane.showInputDialog(null,
-                    "Enter message hash:");
-                boolean d = mgr.deleteByHash(h);
-                JOptionPane.showMessageDialog(null,
-                    d ? "Deleted." : "Not found.");
-            }
-            case "f" -> {
-                JOptionPane.showMessageDialog(null,
-                    mgr.generateReport());
-            }
-            default -> {
-                JOptionPane.showMessageDialog(null,
-                    "Invalid option a–f.");
-            }
+            JOptionPane.showMessageDialog(null, sb);
         }
-    }
+        break;
+    case "e":
+        String h = JOptionPane.showInputDialog(null,
+            "Enter message hash:");
+        boolean d = mgr.deleteByHash(h);
+        JOptionPane.showMessageDialog(null,
+            d ? "Deleted." : "Not found.");
+        break;
+    case "f":
+        JOptionPane.showMessageDialog(null,
+            mgr.generateReport());
+        break;
+    default:
+        JOptionPane.showMessageDialog(null,
+            "Invalid option a–f.");
+        break;
 }
+    }}
+
 
 
 
